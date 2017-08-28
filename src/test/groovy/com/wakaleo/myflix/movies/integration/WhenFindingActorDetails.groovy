@@ -2,27 +2,29 @@ package com.wakaleo.myflix.movies.integration;
 
 import com.wakaleo.myflix.movies.MovieServiceApplication
 import com.wakaleo.myflix.movies.model.Movie;
+import com.wakaleo.myflix.movies.model.Artist;
 import com.wakaleo.myflix.movies.repository.MovieRepository;
+
+import io.restassured.specification.RequestSpecification
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.context.embedded.LocalServerPort
 import org.springframework.boot.test.context.SpringBootTest
-import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment
+import org.springframework.boot.test.web.client.TestRestTemplate
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.web.WebAppConfiguration;
-import org.springframework.test.context.junit4.SpringRunner;
-import org.junit.runner.RunWith;
 import spock.lang.Specification
+
 import io.restassured.RestAssured
 
 import static io.restassured.RestAssured.*
 import static io.restassured.matcher.RestAssuredMatchers.*
 import static org.hamcrest.Matchers.*
 
-
-
 @SpringBootTest(classes = MovieServiceApplication.class, webEnvironment=WebEnvironment.RANDOM_PORT)
-class WhenFindingMovies extends Specification {
+class WhenFindingActorDetails extends Specification {
 
     @Autowired
     MovieRepository movieRepository;
@@ -41,54 +43,54 @@ class WhenFindingMovies extends Specification {
 
     def setup() {
         movieRepository.deleteAll();
-        RestAssured.port = port;
+		RestAssured.port = port;
     }
 
-    def "should list all movies"() {
-        given:
-            movieCatalogContains([GLADIATOR, LETTERS_FROM_IWO_JIMA, GRAN_TORINO])
-        when:
-            def movies = when().get("/movies").as(List)
-        then:
-            movies.collect {movie -> movie.title} == ["Gladiator", "Letters from Iwo Jima", "Gran Torino"]
-    }
-
-    def "should return empty list if the catalog is empty"() {
-        given:
-            movieCatalogContains([])
-        when:
-            def movies = when().get("/movies").as(List)
-        then:
-            movies.isEmpty()
-    }
-
-    def "should list movies by director"() {
-        given:
-            movieCatalogContains([GLADIATOR, LETTERS_FROM_IWO_JIMA, GRAN_TORINO])
-        when:
-            def movies = when().get("/movies/findByDirector/Clint Eastwood").as(Movie[])
-        then:
-            movies.collect {movie -> movie.title} == ["Letters from Iwo Jima", "Gran Torino"]
-    }
-
-    def "should list movies by actor"() {
-        given:
-            movieCatalogContains([GLADIATOR, LETTERS_FROM_IWO_JIMA, GRAN_TORINO])
-        when:
-            List<Movie> movies = when().get("/movies/findByActor/Russell Crowe").as(List)
-        then:
-            movies.collect {movie -> movie.title} == ["Gladiator"]
-    }
-
-    def "should return empty list if no matching films found"() {
-        given:
-            movieCatalogContains([GLADIATOR, LETTERS_FROM_IWO_JIMA, GRAN_TORINO])
-        when:
-            List<Movie> movies = when().get("/movies/findByDirector/Peter Jackson").as(List)
-        then:
-            movies.isEmpty()
-    }
-
+	def "should return actor name"() {
+		given:
+			movieCatalogContains([THE_GOOD_THE_BAD_AND_THE_UGLY, LETTERS_FROM_IWO_JIMA, GRAN_TORINO]);
+		when:
+			Artist artist = when().get("/artists/Clint Eastwood").as(Artist);
+		then:
+			artist.name == "Clint Eastwood"
+	}
+	
+	def "should return actor's films"() { 
+		given:
+			movieCatalogContains([THE_GOOD_THE_BAD_AND_THE_UGLY, LETTERS_FROM_IWO_JIMA, GRAN_TORINO]);
+		when:
+			Artist artist = when().get("/artists/Clint Eastwood").as(Artist)
+		then:
+			artist.actedIn == [THE_GOOD_THE_BAD_AND_THE_UGLY, GRAN_TORINO]
+	}	
+	
+	def "should return the films the actor directed"() {
+		given:
+			movieCatalogContains([THE_GOOD_THE_BAD_AND_THE_UGLY, LETTERS_FROM_IWO_JIMA, GRAN_TORINO]);
+		when:
+			Artist artist = when().get("/artists/Clint Eastwood").as(Artist)
+		then:
+			artist.directed == [LETTERS_FROM_IWO_JIMA, GRAN_TORINO]
+	}
+	
+	def "should return details for actor who hasn't directed any films"() {
+		given:
+			movieCatalogContains([GLADIATOR, GRAN_TORINO])
+		when:
+			Artist artist = when().get("/artists/Russell Crowe").as(Artist)
+		then:
+			artist.directed == []
+		and:
+			artist.actedIn == [GLADIATOR]
+	}
+	
+	def "should return 404 for a person who has not films on record"() { 
+		when:
+			movieCatalogContains([GLADIATOR, GRAN_TORINO])
+		then:
+			when().get("/artists/John Stevenson").then().statusCode(404)
+ 	}
+	
     def movieCatalogContains(List<Movie> movies) {
         movieRepository.save(movies)
     }

@@ -1,9 +1,9 @@
 package com.wakaleo.myflix.movies.features.steps;
 
 import com.google.common.base.Splitter;
+
 import com.google.common.collect.ImmutableList;
 import com.google.common.collect.Lists;
-import com.jayway.restassured.RestAssured;
 import com.wakaleo.myflix.movies.MovieServiceApplication;
 import com.wakaleo.myflix.movies.features.serenitysteps.MovieCatalog;
 import com.wakaleo.myflix.movies.model.Movie;
@@ -14,8 +14,9 @@ import cucumber.api.java.en.Then;
 import cucumber.api.java.en.When;
 import net.thucydides.core.annotations.Steps;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.boot.test.IntegrationTest;
-import org.springframework.boot.test.SpringApplicationContextLoader;
+import org.springframework.boot.context.embedded.LocalServerPort;
+import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.boot.test.context.SpringBootTest.WebEnvironment;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.web.WebAppConfiguration;
 
@@ -27,23 +28,20 @@ import static com.wakaleo.myflix.movies.features.steps.MovieComparators.byTitleA
 import static net.serenitybdd.rest.SerenityRest.rest;
 import static org.assertj.core.api.Assertions.assertThat;
 
-@ContextConfiguration(loader = SpringApplicationContextLoader.class,
-                      classes = MovieServiceApplication.class)
-@WebAppConfiguration
-@IntegrationTest("server.port:0")
+//@WebAppConfiguration
+@SpringBootTest(classes = MovieServiceApplication.class, webEnvironment=WebEnvironment.RANDOM_PORT)
 public class SearchSteps {
 
     @Steps
     MovieCatalog theMovieCatalog;
 
-    @Value("${local.server.port}")
+    @LocalServerPort
     int port;
 
     List<Movie> matchingMovies;
 
     @Before
     public void configurePorts() {
-        RestAssured.port = port;
     }
 
     @Given("the catalog has the following movies:")
@@ -64,13 +62,13 @@ public class SearchSteps {
 
     @When("I search for movies directed by (.*)")
     public void searchByDirector(String director) {
-        Movie[] movies = rest().when().get("/movies/findByDirector/" + director).as(Movie[].class);
+        Movie[] movies = rest().port(port).when().get("/movies/findByDirector/" + director).as(Movie[].class);
         matchingMovies = ImmutableList.copyOf(movies);
     }
 
     @When("I search for a movie called '(.*)'")
     public void searchByTitle(String title) {
-        Movie  matchingMovie = rest().when().get("/movies/findByTitle/" + title).as(Movie.class);
+        Movie  matchingMovie = rest().port(port).when().get("/movies/findByTitle/" + title).as(Movie.class);
         matchingMovies = ImmutableList.of(matchingMovie);
     }
 

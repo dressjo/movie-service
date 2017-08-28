@@ -5,15 +5,13 @@ import com.wakaleo.myflix.movies.model.Movie;
 import com.wakaleo.myflix.movies.repository.MovieRepository;
 import net.serenitybdd.core.Serenity;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.SpringApplicationContextLoader;
+import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.test.context.ContextConfiguration;
 import org.springframework.test.context.web.WebAppConfiguration;
 
 import java.util.List;
 
-@ContextConfiguration(loader = SpringApplicationContextLoader.class,
-                      classes = MovieServiceApplication.class)
-@WebAppConfiguration
+@SpringBootTest(classes = MovieServiceApplication.class)
 public class MovieCatalog {
 
     @Autowired

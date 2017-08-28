@@ -1,6 +1,6 @@
 buildscript {
     ext {
-        springBootVersion = '1.2.4.RELEASE'
+        springBootVersion = '1.5.2.RELEASE'
     }
     repositories {
         jcenter()
@@ -9,7 +9,7 @@ buildscript {
     }
     dependencies {
         classpath("org.springframework.boot:spring-boot-gradle-plugin:${springBootVersion}") 
-        classpath("io.spring.gradle:dependency-management-plugin:0.5.6.RELEASE")
+        classpath("io.spring.gradle:dependency-management-plugin:0.6.1.RELEASE")
         classpath("net.serenity-bdd:serenity-gradle-plugin:1.0.53")
         classpath 'org.cloudfoundry:cf-gradle-plugin:1.1.2'
     }
@@ -19,10 +19,12 @@ apply plugin: 'java'
 apply plugin: 'groovy'
 apply plugin: 'eclipse'
 apply plugin: 'idea'
-apply plugin: 'spring-boot' 
+apply plugin: 'org.springframework.boot' 
 apply plugin: 'io.spring.dependency-management'
 apply plugin: 'net.serenity-bdd.aggregator'
 apply plugin: 'cloudfoundry'
+
+sourceSets.test.groovy.srcDirs += ["src/test/groovy"]
 
 jar {
     baseName = 'movie-service'
@@ -37,7 +39,7 @@ repositories {
     mavenLocal()
 }
 
-def serenityCoreVersion = "1.0.56"
+def serenityCoreVersion = "1.5.5"
 
 dependencies {
     compile("org.springframework.boot:spring-boot-starter-web")
@@ -54,9 +56,9 @@ dependencies {
     testCompile "net.serenity-bdd:serenity-spring:${serenityCoreVersion}"
     testCompile "net.serenity-bdd:serenity-rest-assured:${serenityCoreVersion}"
     testCompile "net.serenity-bdd:serenity-cucumber:1.0.16"
-    testCompile "org.codehaus.groovy:groovy-all:2.3.6"
-    testCompile "org.spockframework:spock-core:0.7-groovy-2.0"
-    testCompile "org.spockframework:spock-spring:0.7-groovy-2.0"
+    testCompile "org.codehaus.groovy:groovy-all:2.4.12"
+    testCompile "org.spockframework:spock-core:1.1-groovy-2.4"
+    testCompile "org.spockframework:spock-spring:1.1-groovy-2.4"
     testCompile "org.assertj:assertj-core:3.0.0"
 }
 
@@ -69,7 +71,7 @@ eclipse {
 }
 
 task wrapper(type: Wrapper) {
-    gradleVersion = '2.3'
+    gradleVersion = '3.4'
 }
 
 test {
